@@ -85,10 +85,11 @@ def summarize_url_whisper():
 
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
-            output_path = os.path.join(tmpdir, "audio.mp3")
+            output_template = os.path.join(tmpdir, "audio.%(ext)s")
+            final_audio_path = os.path.join(tmpdir, "audio.mp3")
             ydl_opts = {
                 'format': 'bestaudio/best',
-                'outtmpl': output_path,
+                'outtmpl': output_template,
                 'quiet': True,
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
@@ -102,7 +103,8 @@ def summarize_url_whisper():
 
             print("Audio downloaded, transcribing with Whisper...")
             model = whisper.load_model("base")
-            result = model.transcribe(output_path)
+            print("Checking if file exists:", os.path.exists(final_audio_path))
+            result = model.transcribe(final_audio_path)
             full_text = result["text"]
             print("Transcription complete. Word count:", len(full_text.split()))
     except Exception as e:
