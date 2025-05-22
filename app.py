@@ -1,11 +1,14 @@
-
-
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, VideoUnavailable
 import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from summarize import summarize_text
+import subprocess
+import tempfile
+import os
+import whisper
+import yt_dlp
 
 app = Flask(__name__)
 CORS(app)
@@ -68,6 +71,53 @@ def summarize_url():
         return jsonify({"summary": summary})
     except Exception as e:
         print("Summarization failed:", str(e))  # 🔍 Debug log
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/summarize-url-whisper", methods=["POST"])
+def summarize_url_whisper():
+    data = request.get_json()
+    url = data.get("url")
+
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
+
+    print("Downloading audio from URL:", url)
+
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = os.path.join(tmpdir, "audio.mp3")
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'outtmpl': output_path,
+                'quiet': True,
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }],
+            }
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+
+            print("Audio downloaded, transcribing with Whisper...")
+            model = whisper.load_model("base")
+            result = model.transcribe(output_path)
+            full_text = result["text"]
+            print("Transcription complete. Word count:", len(full_text.split()))
+    except Exception as e:
+        print("Whisper transcription failed:", str(e))
+        return jsonify({"error": f"Whisper transcription failed: {str(e)}"}), 500
+
+    if len(full_text.split()) > 400:
+        full_text = " ".join(full_text.split()[:400])
+        print("Transcript truncated to 400 words")  # 🔍 Debug log
+
+    try:
+        summary = summarize_text(full_text)
+        return jsonify({"summary": summary})
+    except Exception as e:
+        print("Summarization failed:", str(e))
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
