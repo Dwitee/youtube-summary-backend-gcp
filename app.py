@@ -43,6 +43,7 @@ def summarize_url():
         return jsonify({"error": "Invalid YouTube URL"}), 400
 
     video_id = match.group(1)
+    print("Extracted Video ID:", video_id)  # 🔍 Debug log
 
     try:
         transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
@@ -60,11 +61,13 @@ def summarize_url():
     # Truncate and summarize using existing summarize_text function
     if len(full_text.split()) > 400:
         full_text = " ".join(full_text.split()[:400])
+        print("Transcript truncated to 400 words")  # 🔍 Debug log
 
     try:
         summary = summarize_text(full_text)
         return jsonify({"summary": summary})
     except Exception as e:
+        print("Summarization failed:", str(e))  # 🔍 Debug log
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
