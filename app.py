@@ -11,7 +11,7 @@ import whisper
 import yt_dlp
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 @app.route("/summarize-text", methods=["POST"])
 def summarize():
@@ -46,7 +46,7 @@ def summarize_url():
         return jsonify({"error": "Invalid YouTube URL"}), 400
 
     video_id = match.group(1)
-    print("Extracted Video ID:", video_id)  # 🔍 Debug log
+    print("Extracted Video ID:", video_id)  #  Debug log
 
     try:
         transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
@@ -64,13 +64,13 @@ def summarize_url():
     # Truncate and summarize using existing summarize_text function
     if len(full_text.split()) > 400:
         full_text = " ".join(full_text.split()[:400])
-        print("Transcript truncated to 400 words")  # 🔍 Debug log
+        print("Transcript truncated to 400 words")  #  Debug log
 
     try:
         summary = summarize_text(full_text)
         return jsonify({"summary": summary})
     except Exception as e:
-        print("Summarization failed:", str(e))  # 🔍 Debug log
+        print("Summarization failed:", str(e))  #  Debug log
         return jsonify({"error": str(e)}), 500
 
 @app.route("/summarize-url-whisper", methods=["POST"])
