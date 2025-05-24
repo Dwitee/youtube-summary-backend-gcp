@@ -10,6 +10,8 @@ import os
 import whisper
 import yt_dlp
 
+model = whisper.load_model("tiny")
+
 app = Flask(__name__)
 CORS(app)
 
@@ -102,7 +104,6 @@ def summarize_url_whisper():
                 ydl.download([url])
 
             print("Audio downloaded, transcribing with Whisper...")
-            model = whisper.load_model("base")
             print("Checking if file exists:", os.path.exists(final_audio_path))
             result = model.transcribe(final_audio_path)
             full_text = result["text"]
@@ -141,7 +142,6 @@ def summarize_upload():
             file.save(file_path)
 
             print("Transcribing uploaded file with Whisper...")
-            model = whisper.load_model("tiny")
             result = model.transcribe(file_path)
             full_text = result["text"]
             print("Transcription complete. Word count:", len(full_text.split()))
