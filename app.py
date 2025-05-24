@@ -141,7 +141,7 @@ def summarize_upload():
             file.save(file_path)
 
             print("Transcribing uploaded file with Whisper...")
-            model = whisper.load_model("base")
+            model = whisper.load_model("tiny")
             result = model.transcribe(file_path)
             full_text = result["text"]
             print("Transcription complete. Word count:", len(full_text.split()))
