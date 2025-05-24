@@ -11,7 +11,7 @@ import whisper
 import yt_dlp
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app)
 
 @app.route("/summarize-text", methods=["POST"])
 def summarize():
@@ -124,3 +124,35 @@ def summarize_url_whisper():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)
+
+
+# New route: /summarize-upload
+@app.route("/summarize-upload", methods=["POST"])
+def summarize_upload():
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
+
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = os.path.join(tmpdir, file.filename)
+            file.save(file_path)
+
+            print("Transcribing uploaded file with Whisper...")
+            model = whisper.load_model("base")
+            result = model.transcribe(file_path)
+            full_text = result["text"]
+            print("Transcription complete. Word count:", len(full_text.split()))
+
+            if len(full_text.split()) > 400:
+                full_text = " ".join(full_text.split()[:400])
+                print("Transcript truncated to 400 words")
+
+            summary = summarize_text(full_text)
+            return jsonify({"summary": summary})
+    except Exception as e:
+        print("Upload summarization failed:", str(e))
+        return jsonify({"error": f"Upload summarization failed: {str(e)}"}), 500
