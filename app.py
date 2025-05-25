@@ -3,7 +3,9 @@ from youtube_transcript_api._errors import TranscriptsDisabled, VideoUnavailable
 import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import job_processor
 from summarize import summarize_text
+from transcriber import transcribe_with_whisper
 import subprocess
 import tempfile
 import os
@@ -142,8 +144,7 @@ def summarize_upload():
             file.save(file_path)
 
             print("Transcribing uploaded file with Whisper...")
-            result = model.transcribe(file_path)
-            full_text = result["text"]
+            full_text = transcribe_with_whisper(file_path)
             print("Transcription complete. Word count:", len(full_text.split()))
 
             if len(full_text.split()) > 400:
@@ -156,6 +157,15 @@ def summarize_upload():
     except Exception as e:
         print("Upload summarization failed:", str(e))
         return jsonify({"error": f"Upload summarization failed: {str(e)}"}), 500
+
+
+@app.route("/submit-job", methods=["POST"])
+def submit_job():
+    return job_processor.submit_job_handler()
+
+@app.route("/job-result/<job_id>", methods=["GET"])
+def job_result(job_id):
+    return job_processor.job_result_handler(job_id)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)
