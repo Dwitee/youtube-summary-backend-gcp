@@ -151,6 +151,7 @@ def summarize_upload():
                 print("Transcript truncated to 400 words")
 
             summary = summarize_text(full_text)
+            print("Sending summary response:", summary)
             return jsonify({"summary": summary})
     except Exception as e:
         print("Upload summarization failed:", str(e))
