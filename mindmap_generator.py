@@ -29,6 +29,8 @@ Format your response as:
   }}
 }}
 
+Output ONLY the JSON. Do not include any explanations, prefixes, or formatting.
+
 Summary:
 \"\"\"
 {summary}
@@ -56,14 +58,9 @@ def generate_mindmap_structure(summary_text):
         if isinstance(result, list) and "generated_text" in result[0]:
             text = result[0]["generated_text"]
             try:
-                # Extract all JSON-like blocks with "central" and "branches"
-                matches = re.findall(r'({\s*"central"\s*:\s*".+?",\s*"branches"\s*:\s*{.*?}})', text, re.DOTALL)
-                if matches:
-                    return matches[-1]  # Return the last matching valid JSON block
-                else:
-                    raise ValueError("No valid mind map JSON found in model output.")
-            except Exception as e:
-                raise ValueError(f"Failed to extract mind map JSON: {e}")
+                return json.loads(text)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Failed to decode JSON from model output: {e}")
         else:
             raise ValueError("Unexpected response format from Hugging Face.")
     else:
