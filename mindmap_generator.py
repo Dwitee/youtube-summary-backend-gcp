@@ -21,13 +21,13 @@ You are a helpful assistant. Convert the summary below into a mind map JSON with
 - 2 to 4 subpoints per branch
 
 Format your response as:
-{
+{{
   "central": "Main Topic",
-  "branches": {
+  "branches": {{
     "Branch 1": ["Point A", "Point B"],
     ...
-  }
-}
+  }}
+}}
 
 Summary:
 \"\"\"
