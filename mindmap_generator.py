@@ -53,6 +53,16 @@ def generate_mindmap_structure(summary_text):
 
     if response.status_code == 200:
         result = response.json()
-        return result
+        if isinstance(result, list) and "generated_text" in result[0]:
+            text = result[0]["generated_text"]
+            try:
+                start = text.index("{")
+                end = text.rindex("}") + 1
+                json_part = text[start:end]
+                return json_part
+            except Exception as e:
+                raise ValueError(f"Failed to extract mind map JSON: {e}")
+        else:
+            raise ValueError("Unexpected response format from Hugging Face.")
     else:
         raise Exception(f"Hugging Face API call failed: {response.status_code} — {response.text}")
