@@ -40,10 +40,9 @@ def generate_mindmap_structure(summary_text):
     data = {"inputs": prompt}
 
     response = requests.post(MODEL_URL, headers=HEADERS, json=data)
-
+    print(f"[DEBUG] Response from zephyr is {response}")
     if response.status_code == 200:
         result = response.json()
-        print(f"[DEBUG] mindmap json: {result}")
         return result
     else:
         raise Exception(f"Hugging Face API call failed: {response.status_code} — {response.text}")
