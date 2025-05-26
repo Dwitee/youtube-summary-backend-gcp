@@ -43,6 +43,7 @@ def generate_mindmap_structure(summary_text):
 
     if response.status_code == 200:
         result = response.json()
+        print(f"[DEBUG] mindmap json: {result}")
         return result
     else:
         raise Exception(f"Hugging Face API call failed: {response.status_code} — {response.text}")
