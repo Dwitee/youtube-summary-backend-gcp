@@ -58,11 +58,12 @@ def generate_mindmap_structure(summary_text):
             text = result[0]["generated_text"]
             print(f"[DEBUG] Full Zephyr generated text:\n{text}")
 
-            # Try to extract JSON following "Your response:", or fallback to last valid JSON
-            json_match = re.search(r'Your response:\s*({\s*"central".*?})', text, re.DOTALL)
+            # Try to extract JSON following "Your response:", or fallback to valid JSON excluding the example
+            json_match = re.search(r'Your response:\s*({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', text, re.DOTALL)
             if not json_match:
-                # Fallback to last valid-looking JSON
-                json_blocks = re.findall(r'({\s*"central".*?})', text, re.DOTALL)
+                # Fallback to last valid-looking JSON that is not the example
+                json_blocks = re.findall(r'({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', text, re.DOTALL)
+                json_blocks = [block for block in json_blocks if '"Main Topic"' not in block and '"Branch 1"' not in block]
                 if json_blocks:
                     json_str = json_blocks[-1]
                 else:
