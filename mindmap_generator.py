@@ -58,17 +58,22 @@ def generate_mindmap_structure(summary_text):
             text = result[0]["generated_text"]
             print(f"[DEBUG] Full Zephyr generated text:\n{text}")
 
-            # Try to extract JSON from common response format
-            json_match = re.search(r'(?:Convert to JSON:|JSON)?\s*({.*})', text, re.DOTALL)
-            if json_match:
-                json_str = json_match.group(1)
-                print(f"[DEBUG] Extracted JSON string:\n{json_str}")
-                try:
-                    return json.loads(json_str)
-                except json.JSONDecodeError as e:
-                    raise ValueError(f"Failed to decode JSON: {e}")
+            # Try to extract JSON following "Your response:", or fallback to last valid JSON
+            json_match = re.search(r'Your response:\s*({\s*"central".*?})', text, re.DOTALL)
+            if not json_match:
+                # Fallback to last valid-looking JSON
+                json_blocks = re.findall(r'({\s*"central".*?})', text, re.DOTALL)
+                if json_blocks:
+                    json_str = json_blocks[-1]
+                else:
+                    raise ValueError("Mind map JSON not found in Zephyr output.")
             else:
-                raise ValueError("Mind map JSON not found in Zephyr output.")
+                json_str = json_match.group(1)
+            print(f"[DEBUG] Extracted JSON string:\n{json_str}")
+            try:
+                return json.loads(json_str)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Failed to decode JSON: {e}")
         else:
             raise ValueError("Unexpected response format from Hugging Face.")
     else:
