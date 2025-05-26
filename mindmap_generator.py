@@ -39,8 +39,17 @@ def generate_mindmap_structure(summary_text):
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
     data = {"inputs": prompt}
 
-    response = requests.post(MODEL_URL, headers=HEADERS, json=data)
-    print(f"[DEBUG] Response from zephyr is {response}")
+    print("[DEBUG] Prompt being sent to Zephyr:")
+    print(prompt)
+
+    try:
+        response = requests.post(MODEL_URL, headers=HEADERS, json=data)
+        print(f"[DEBUG] Raw response object: {response}")
+        print(f"[DEBUG] Status Code: {response.status_code}")
+        print(f"[DEBUG] Response Text: {response.text}")
+    except Exception as e:
+        raise Exception(f"[ERROR] Exception while calling Zephyr: {e}")
+
     if response.status_code == 200:
         result = response.json()
         return result
