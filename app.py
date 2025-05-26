@@ -189,7 +189,7 @@ def generate_mindmap():
     try:
         print("Generating mind map from summary...")  # Debug log
         mindmap_json = generate_mindmap_structure(summary)
-        print("Generated mind map JSON:", mindmap_json)  # Debug log
+        # print("Generated mind map JSON:", mindmap_json)  # Debug log
         return jsonify({"mindmap": mindmap_json})
     except Exception as e:
         print("Mind map generation failed:", str(e))
