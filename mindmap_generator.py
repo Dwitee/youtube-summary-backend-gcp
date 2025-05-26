@@ -56,10 +56,12 @@ def generate_mindmap_structure(summary_text):
         if isinstance(result, list) and "generated_text" in result[0]:
             text = result[0]["generated_text"]
             try:
-                start = text.index("{")
-                end = text.rindex("}") + 1
-                json_part = text[start:end]
-                return json_part
+                # Extract all JSON-like blocks with "central" and "branches"
+                matches = re.findall(r'({\s*"central"\s*:\s*".+?",\s*"branches"\s*:\s*{.*?}})', text, re.DOTALL)
+                if matches:
+                    return matches[-1]  # Return the last matching valid JSON block
+                else:
+                    raise ValueError("No valid mind map JSON found in model output.")
             except Exception as e:
                 raise ValueError(f"Failed to extract mind map JSON: {e}")
         else:
