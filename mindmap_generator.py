@@ -36,6 +36,7 @@ Summary:
 """
 
 def generate_mindmap_structure(summary_text):
+    print(f"XXXXXXXXXXXXXXXXXX")
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
     data = {"inputs": prompt}
 
