@@ -1,12 +1,13 @@
 import os
 import requests
 import json
+import re
 
 # Set your Hugging Face token as an environment variable: HF_TOKEN
 HF_TOKEN = os.environ.get("HF_TOKEN")
 if not HF_TOKEN:
     raise EnvironmentError("HF_TOKEN environment variable not set.")
-MODEL_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1"
+MODEL_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
 
 HEADERS = {
     "Authorization": f"Bearer {HF_TOKEN}",
