@@ -59,7 +59,7 @@ def generate_mindmap_structure(summary_text):
             print(f"[DEBUG] Full Zephyr generated text:\n{text}")
 
             # Try to extract JSON from common response format
-            json_match = re.search(r'(?:Convert to JSON:|Your response:)?\s*({.*})', text, re.DOTALL)
+            json_match = re.search(r'(?:Convert to JSON:|JSON)?\s*({.*})', text, re.DOTALL)
             if json_match:
                 json_str = json_match.group(1)
                 print(f"[DEBUG] Extracted JSON string:\n{json_str}")
