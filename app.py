@@ -1,5 +1,6 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, VideoUnavailable
+from mindmap_generator import generate_mindmap_structure
 import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -91,6 +92,7 @@ def summarize_url_whisper():
         with tempfile.TemporaryDirectory() as tmpdir:
             output_template = os.path.join(tmpdir, "audio.%(ext)s")
             final_audio_path = os.path.join(tmpdir, "audio.mp3")
+            cookie_path = "youtube_cookies.txt"
             ydl_opts = {
                 'format': 'bestaudio/best',
                 'outtmpl': output_template,
@@ -101,6 +103,12 @@ def summarize_url_whisper():
                     'preferredquality': '192',
                 }],
             }
+
+            if os.path.exists(cookie_path):
+                print("✅ Using cookiefile for authentication.")
+                ydl_opts['cookiefile'] = cookie_path
+            else:
+                print("⚠️ No cookiefile found. Proceeding without cookies.")
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
@@ -167,5 +175,24 @@ def submit_job():
 def job_result(job_id):
     return job_processor.job_result_handler(job_id)
 
+
+
+# New route: /generate-mindmap
+@app.route("/generate-mindmap", methods=["POST"])
+def generate_mindmap():
+    data = request.get_json()
+    summary = data.get("summary", "").strip()
+
+    if not summary:
+        return jsonify({"error": "Empty summary provided"}), 400
+
+    try:
+        print("Generating mind map from summary...")  # Debug log
+        mindmap_json = generate_mindmap_structure(summary)
+        print("Generated mind map JSON:", mindmap_json)  # Debug log
+        return jsonify({"mindmap": mindmap_json})
+    except Exception as e:
+        print("Mind map generation failed:", str(e))
+        return jsonify({"error": str(e)}), 500
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)
