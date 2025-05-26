@@ -49,7 +49,6 @@ def generate_mindmap_structure(summary_text):
         response = requests.post(MODEL_URL, headers=HEADERS, json=data)
         print(f"[DEBUG] Raw response object: {response}")
         print(f"[DEBUG] Status Code: {response.status_code}")
-        print(f"[DEBUG] Response Text: {response.text}")
     except Exception as e:
         raise Exception(f"[ERROR] Exception while calling Zephyr: {e}")
 
@@ -57,8 +56,8 @@ def generate_mindmap_structure(summary_text):
         result = response.json()
         if isinstance(result, list) and "generated_text" in result[0]:
             text = result[0]["generated_text"]
-            import re
-            return json.load(text)
+            print(f"[DEBUG] generated text is: {text}")
+            return text
         else:
             raise ValueError("Unexpected response format from Hugging Face.")
     else:
