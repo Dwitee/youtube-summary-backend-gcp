@@ -57,8 +57,14 @@ def generate_mindmap_structure(summary_text):
         result = response.json()
         if isinstance(result, list) and "generated_text" in result[0]:
             text = result[0]["generated_text"]
+            import re
             try:
-                return json.loads(text)
+                # Extract final valid JSON from the response text
+                json_match = re.search(r'{\s*"central".*}', text, re.DOTALL)
+                if json_match:
+                    return json.loads(json_match.group(0))
+                else:
+                    raise ValueError("Valid mind map JSON not found in model output.")
             except json.JSONDecodeError as e:
                 raise ValueError(f"Failed to decode JSON from model output: {e}")
         else:
