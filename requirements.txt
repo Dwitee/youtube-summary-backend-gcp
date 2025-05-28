@@ -10,3 +10,6 @@ torch
 transformers
 accelerate
 bitsandbytes
+llama-cpp-python
+# For GPU acceleration, install with:
+# pip install llama-cpp-python --extra-index-url=https://jllllll.github.io/llama-cpp-python-cuBLAS-wheels/AVX2/cu122

@@ -12,6 +12,7 @@ import tempfile
 import os
 import whisper
 import yt_dlp
+from mindmap_generator import generate_mindmap_from_gguf
 
 
 # Rename Whisper model variable to whisper_model
@@ -197,7 +198,7 @@ def generate_mindmap():
 
     try:
         print("Generating mind map from summary...")  # Debug log
-        mindmap_json = generate_mindmap_zephyr_locally(summary, model=zephyr_model, tokenizer=zephyr_tokenizer)
+        mindmap_json = generate_mindmap_from_gguf(summary)
         return jsonify({"mindmap": mindmap_json})
     except Exception as e:
         print("Mind map generation failed:", str(e))

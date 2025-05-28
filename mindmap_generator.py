@@ -37,33 +37,28 @@ Summary:
 \"\"\"
 """
 
-def generate_mindmap_zephyr_locally(summary_text, model, tokenizer):
-    from transformers import pipeline
+def generate_mindmap_from_gguf(summary_text):
+    from llama_cpp import Llama
+
+    prompt = PROMPT_TEMPLATE.format(summary=summary_text)
+    print(f"[DEBUG] Prompt for GGUF model:\n{prompt}")
+
+    model_path = "./models/zephyr.gguf"
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model file not found at {model_path}")
+
+    llm = Llama(model_path=model_path, n_ctx=4096, n_threads=8)
+
+    response = llm(prompt, max_tokens=1024, stop=["</s>", "```"], echo=False)
+    result = response["choices"][0]["text"].strip()
+    print(f"[DEBUG] GGUF model response:\n{result}")
+
     try:
-        prompt = PROMPT_TEMPLATE.format(summary=summary_text)
-        # Lets accelerate handle device/dtype — REMOVE manual `device` and `torch_dtype`
-        pipe = pipeline(
-            "text-generation",
-            model=model,
-            tokenizer=tokenizer
-        )
-        print(f"[DEBUG] Generating mind map using local Zephyr model with prompt:\n{prompt}")
-        result = pipe(prompt, max_new_tokens=512, do_sample=False, return_full_text=False)[0]["generated_text"]
-        print(f"[DEBUG] Full local Zephyr generated text:\n{result}")
-
-        json_match = re.search(r'Your response:\s*({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', result, re.DOTALL)
+        json_match = re.search(r'({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', result, re.DOTALL)
         if not json_match:
-            json_blocks = re.findall(r'({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', result, re.DOTALL)
-            json_blocks = [block for block in json_blocks if '"Main Topic"' not in block and '"Branch 1"' not in block]
-            if json_blocks:
-                json_str = json_blocks[-1]
-            else:
-                raise ValueError("Mind map JSON not found in Zephyr local output.")
-        else:
-            json_str = json_match.group(1)
-
-        print(f"[DEBUG] Extracted local JSON string:\n{json_str}")
+            raise ValueError("Mind map JSON not found in GGUF model output.")
+        json_str = json_match.group(1)
+        print(f"[DEBUG] Extracted mind map JSON:\n{json_str}")
         return json.loads(json_str)
-
     except Exception as e:
-        raise RuntimeError(f"[ERROR] Failed to generate mind map locally: {e}")
+        raise RuntimeError(f"[ERROR] Failed to parse GGUF model output: {e}")
