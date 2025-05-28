@@ -12,7 +12,7 @@ import tempfile
 import os
 import whisper
 import yt_dlp
-
+import torch
 
 # Rename Whisper model variable to whisper_model
 whisper_model = whisper.load_model("tiny", device="cuda")
@@ -22,7 +22,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 zephyr_model_name = "HuggingFaceH4/zephyr-7b-beta"
 zephyr_tokenizer = AutoTokenizer.from_pretrained(zephyr_model_name)
-zephyr_model = AutoModelForCausalLM.from_pretrained(zephyr_model_name, device_map="auto")
+zephyr_model = AutoModelForCausalLM.from_pretrained(zephyr_model_name).to("cuda" if torch.cuda.is_available() else "cpu")
 
 app = Flask(__name__)
 CORS(app)
