@@ -39,18 +39,15 @@ Summary:
 
 def generate_mindmap_zephyr_locally(summary_text, model, tokenizer):
     from transformers import pipeline
-
-    print("[DEBUG] Generating mind map using local Zephyr model...")
-
-    prompt = PROMPT_TEMPLATE.format(summary=summary_text)
-
-    # Lets accelerate handle device/dtype — REMOVE manual `device` and `torch_dtype`
-    pipe = pipeline(
-        "text-generation",
-        model=model,
-        tokenizer=tokenizer
-    )
     try:
+        prompt = PROMPT_TEMPLATE.format(summary=summary_text)
+        # Lets accelerate handle device/dtype — REMOVE manual `device` and `torch_dtype`
+        pipe = pipeline(
+            "text-generation",
+            model=model,
+            tokenizer=tokenizer
+        )
+        print(f"[DEBUG] Generating mind map using local Zephyr model with prompt:\n{prompt}")
         result = pipe(prompt, max_new_tokens=512, do_sample=False, return_full_text=False)[0]["generated_text"]
         print(f"[DEBUG] Full local Zephyr generated text:\n{result}")
 
