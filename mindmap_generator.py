@@ -44,14 +44,14 @@ def generate_mindmap_zephyr_locally(summary_text, model, tokenizer):
 
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
 
-    # Let accelerate handle device/dtype — REMOVE manual `device` and `torch_dtype`
+    # Lets accelerate handle device/dtype — REMOVE manual `device` and `torch_dtype`
     pipe = pipeline(
         "text-generation",
         model=model,
         tokenizer=tokenizer
     )
     try:
-        result = pipe(prompt, max_new_tokens=1024, do_sample=True)[0]["generated_text"]
+        result = pipe(prompt, max_new_tokens=512, do_sample=False, return_full_text=False)[0]["generated_text"]
         print(f"[DEBUG] Full local Zephyr generated text:\n{result}")
 
         json_match = re.search(r'Your response:\s*({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', result, re.DOTALL)
