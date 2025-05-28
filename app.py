@@ -1,6 +1,5 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, VideoUnavailable
-from mindmap_generator import generate_mindmap_zephyr_locally
 import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
