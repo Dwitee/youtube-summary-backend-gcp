@@ -37,51 +37,6 @@ Summary:
 \"\"\"
 """
 
-# def generate_mindmap_structure(summary_text):
-#     print(f"XXXXXXXXXXXXXXXXXX")
-#     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
-#     data = {"inputs": prompt}
-
-#     print("[DEBUG] Prompt being sent to Zephyr:")
-#     print(prompt)
-
-#     try:
-#         response = requests.post(MODEL_URL, headers=HEADERS, json=data)
-#         print(f"[DEBUG] Raw response object: {response}")
-#         print(f"[DEBUG] Status Code: {response.status_code}")
-#     except Exception as e:
-#         raise Exception(f"[ERROR] Exception while calling Zephyr: {e}")
-
-#     if response.status_code == 200:
-#         result = response.json()
-#         if isinstance(result, list) and "generated_text" in result[0]:
-#             text = result[0]["generated_text"]
-#             print(f"[DEBUG] Full Zephyr generated text:\n{text}")
-
-#             # Try to extract JSON following "Your response:", or fallback to valid JSON excluding the example
-#             json_match = re.search(r'Your response:\s*({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', text, re.DOTALL)
-#             if not json_match:
-#                 # Fallback to last valid-looking JSON that is not the example
-#                 json_blocks = re.findall(r'({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', text, re.DOTALL)
-#                 json_blocks = [block for block in json_blocks if '"Main Topic"' not in block and '"Branch 1"' not in block]
-#                 if json_blocks:
-#                     json_str = json_blocks[-1]
-#                 else:
-#                     raise ValueError("Mind map JSON not found in Zephyr output.")
-#             else:
-#                 json_str = json_match.group(1)
-#             print(f"[DEBUG] Extracted JSON string:\n{json_str}")
-#             try:
-#                 return json.loads(json_str)
-#             except json.JSONDecodeError as e:
-#                 raise ValueError(f"Failed to decode JSON: {e}")
-#         else:
-#             raise ValueError("Unexpected response format from Hugging Face.")
-#     else:
-#         raise Exception(f"Hugging Face API call failed: {response.status_code} — {response.text}")
-
-
-
 def generate_mindmap_zephyr_locally(summary_text, model, tokenizer, device="cuda"):
     from transformers import pipeline
 
