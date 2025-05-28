@@ -1,6 +1,6 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, VideoUnavailable
-from mindmap_generator import generate_mindmap_structure
+from mindmap_generator import generate_mindmap_structure, generate_mindmap_zephyr_locally
 import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -13,7 +13,16 @@ import os
 import whisper
 import yt_dlp
 
-model = whisper.load_model("tiny")
+
+# Rename Whisper model variable to whisper_model
+whisper_model = whisper.load_model("tiny", device="cuda")
+
+# Add Zephyr model and tokenizer initialization
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+zephyr_model_name = "HuggingFaceH4/zephyr-7b-beta"
+zephyr_tokenizer = AutoTokenizer.from_pretrained(zephyr_model_name)
+zephyr_model = AutoModelForCausalLM.from_pretrained(zephyr_model_name, device_map="auto")
 
 app = Flask(__name__)
 CORS(app)
@@ -115,7 +124,7 @@ def summarize_url_whisper():
 
             print("Audio downloaded, transcribing with Whisper...")
             print("Checking if file exists:", os.path.exists(final_audio_path))
-            result = model.transcribe(final_audio_path)
+            result = whisper_model.transcribe(final_audio_path)
             full_text = result["text"]
             print("Transcription complete. Word count:", len(full_text.split()))
     except Exception as e:
@@ -188,8 +197,7 @@ def generate_mindmap():
 
     try:
         print("Generating mind map from summary...")  # Debug log
-        mindmap_json = generate_mindmap_structure(summary)
-        # print("Generated mind map JSON:", mindmap_json)  # Debug log
+        mindmap_json = generate_mindmap_zephyr_locally(summary, model=zephyr_model, tokenizer=zephyr_tokenizer)
         return jsonify({"mindmap": mindmap_json})
     except Exception as e:
         print("Mind map generation failed:", str(e))

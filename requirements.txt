@@ -6,3 +6,7 @@ git+https://github.com/openai/whisper.git
 yt-dlp
 youtube-transcript-api
 requests
+torch
+transformers
+accelerate
+bitsandbytes
