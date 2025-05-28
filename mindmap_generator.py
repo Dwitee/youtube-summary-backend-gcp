@@ -37,14 +37,19 @@ Summary:
 \"\"\"
 """
 
-def generate_mindmap_zephyr_locally(summary_text, model, tokenizer, device="cuda"):
+def generate_mindmap_zephyr_locally(summary_text, model, tokenizer):
     from transformers import pipeline
 
     print("[DEBUG] Generating mind map using local Zephyr model...")
 
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=0 if device == "cuda" else -1)
 
+    # Let accelerate handle device/dtype — REMOVE manual `device` and `torch_dtype`
+    pipe = pipeline(
+        "text-generation",
+        model=model,
+        tokenizer=tokenizer
+    )
     try:
         result = pipe(prompt, max_new_tokens=1024, do_sample=True)[0]["generated_text"]
         print(f"[DEBUG] Full local Zephyr generated text:\n{result}")
