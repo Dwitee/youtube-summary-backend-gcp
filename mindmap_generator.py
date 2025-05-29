@@ -77,7 +77,9 @@ def generate_mindmap_transformer(summary_text):
     model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-base")
     summarizer = pipeline("text2text-generation", model=model, tokenizer=tokenizer, device=0 if torch.cuda.is_available() else -1)
 
-    result = summarizer(prompt, max_new_tokens=256, do_sample=True)[0]["generated_text"]
+    raw_result = summarizer(prompt, max_new_tokens=256, do_sample=True)
+    print(f"[DEBUG] Raw transformer model output:\n{raw_result}")
+    result = raw_result[0]["generated_text"]
     print(f"[DEBUG] Transformer model response:\n{result}")
 
     try:
