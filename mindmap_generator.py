@@ -39,7 +39,7 @@ def generate_mindmap_transformer(summary_text):
 
     raw_result = summarizer(prompt, max_new_tokens=256, do_sample=True)
     print(f"[DEBUG] Raw transformer model output:\n{raw_result}")
-    result = raw_result[0]["generated_text"]
+    result = raw_result[0].get("generated_text", "").strip()
     print(f"[DEBUG] Transformer model response:\n{result}")
 
     try:
