@@ -190,7 +190,7 @@ def job_result(job_id):
 def generate_mindmap():
     data = request.get_json()
     summary = data.get("summary", "").strip()
-    model_type = data.get("model_type", "zephyr-gguf")  # Default to zephyr-gguf
+    model_type = data.get("model_type", "zephyr-gguf")  
 
     if not summary:
         return jsonify({"error": "Empty summary provided"}), 400
