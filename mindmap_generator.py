@@ -31,9 +31,9 @@ Summary:
 def generate_mindmap_transformer(summary_text):
 
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
-    print(f"[DEBUG] Prompt for transformer model with flan-t5-base  :\n{prompt}")
+    print(f"[DEBUG] Prompt for transformer model with flan-t5-large  :\n{prompt}")
 
-    tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
+    tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-large")
     model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-large", device_map="auto")
     summarizer = pipeline("text2text-generation", model=model, tokenizer=tokenizer)
 
