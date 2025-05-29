@@ -11,7 +11,7 @@ import tempfile
 import os
 import whisper
 import yt_dlp
-from mindmap_generator import generate_mindmap_transformer, generate_mindmap_from_gguf
+from mindmap_generator import generate_mindmap_transformer
 
 
 # Rename Whisper model variable to whisper_model
@@ -199,7 +199,6 @@ def generate_mindmap():
         print(f"Generating mind map using model: {model_type}")  # Debug log
         model_dispatch = {
             "transformer": generate_mindmap_transformer,
-            "zephyr-gguf": generate_mindmap_from_gguf,
         }
 
         generator_fn = model_dispatch.get(model_type)
