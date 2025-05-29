@@ -49,7 +49,10 @@ def generate_mindmap_from_gguf(summary_text):
 
     llm = Llama(model_path=model_path, n_ctx=4096, n_threads=8)
 
-    response = llm(prompt, max_tokens=1024, stop=["</s>", "```"], echo=False)
+    print("[DEBUG] Starting GGUF model inference...")
+    response = llm(prompt, max_tokens=256, stop=["</s>", "```"], echo=False)
+    print("[DEBUG] GGUF model inference complete")
+    
     result = response["choices"][0]["text"].strip()
     print(f"[DEBUG] GGUF model response:\n{result}")
 
