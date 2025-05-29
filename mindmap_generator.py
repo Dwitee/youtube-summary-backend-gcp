@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import re
+import torch
 
 # Set your Hugging Face token as an environment variable: HF_TOKEN
 HF_TOKEN = os.environ.get("HF_TOKEN")
@@ -65,3 +66,26 @@ def generate_mindmap_from_gguf(summary_text):
         return json.loads(json_str)
     except Exception as e:
         raise RuntimeError(f"[ERROR] Failed to parse GGUF model output: {e}")
+
+def generate_mindmap_transformer(summary_text):
+    from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
+
+    prompt = PROMPT_TEMPLATE.format(summary=summary_text)
+    print(f"[DEBUG] Prompt for transformer model with flan-t5-base:\n{prompt}")
+
+    tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
+    model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-base")
+    summarizer = pipeline("text2text-generation", model=model, tokenizer=tokenizer, device=0 if torch.cuda.is_available() else -1)
+
+    result = summarizer(prompt, max_new_tokens=256, do_sample=True)[0]["generated_text"]
+    print(f"[DEBUG] Transformer model response:\n{result}")
+
+    try:
+        json_match = re.search(r'({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', result, re.DOTALL)
+        if not json_match:
+            raise ValueError("Mind map JSON not found in transformer model output.")
+        json_str = json_match.group(1)
+        print(f"[DEBUG] Extracted mind map JSON:\n{json_str}")
+        return json.loads(json_str)
+    except Exception as e:
+        raise RuntimeError(f"[ERROR] Failed to parse transformer model output: {e}")

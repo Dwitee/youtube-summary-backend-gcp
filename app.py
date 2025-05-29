@@ -11,7 +11,7 @@ import tempfile
 import os
 import whisper
 import yt_dlp
-from mindmap_generator import generate_mindmap_from_gguf
+from mindmap_generator import generate_mindmap_flan-t5-base, generate_mindmap_from_gguf
 
 
 # Rename Whisper model variable to whisper_model
@@ -186,18 +186,27 @@ def job_result(job_id):
 
 
 
-# New route: /generate-mindmap
 @app.route("/generate-mindmap", methods=["POST"])
 def generate_mindmap():
     data = request.get_json()
     summary = data.get("summary", "").strip()
+    model_type = data.get("model_type", "zephyr-gguf")  # Default to zephyr-gguf
 
     if not summary:
         return jsonify({"error": "Empty summary provided"}), 400
 
     try:
-        print("Generating mind map from summary...")  # Debug log
-        mindmap_json = generate_mindmap_from_gguf(summary)
+        print(f"Generating mind map using model: {model_type}")  # Debug log
+        model_dispatch = {
+            "transformer": generate_mindmap_flan-t5-base,
+            "zephyr-gguf": generate_mindmap_from_gguf,
+        }
+
+        generator_fn = model_dispatch.get(model_type)
+        if not generator_fn:
+            return jsonify({"error": f"Unsupported model_type: {model_type}"}), 400
+
+        mindmap_json = generator_fn(summary)
         return jsonify({"mindmap": mindmap_json})
     except Exception as e:
         print("Mind map generation failed:", str(e))
