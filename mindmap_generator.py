@@ -71,7 +71,7 @@ def generate_mindmap_transformer(summary_text):
     from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
 
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
-    print(f"[DEBUG] Prompt for transformer model with flan-t5-base:\n{prompt}")
+    print(f"[DEBUG] Prompt for transformer model with flan-t5-base  :\n{prompt}")
 
     tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
     model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-base")
