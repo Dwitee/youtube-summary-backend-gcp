@@ -11,5 +11,6 @@ transformers
 accelerate
 bitsandbytes
 llama-cpp-python
+huggingface_hub
 # For GPU acceleration, install with:
 # pip install llama-cpp-python --extra-index-url=https://jllllll.github.io/llama-cpp-python-cuBLAS-wheels/AVX2/cu122

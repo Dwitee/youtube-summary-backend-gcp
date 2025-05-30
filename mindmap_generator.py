@@ -4,6 +4,11 @@ import json
 import re
 from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
 
+# Set your Hugging Face token as an environment variable: HF_TOKEN
+HF_TOKEN = os.environ.get("HF_TOKEN")
+if not HF_TOKEN:
+    raise EnvironmentError("HF_TOKEN environment variable not set.")
+
 PROMPT_TEMPLATE = """
 You are a helpful assistant. Convert the summary below into a mind map JSON with:
 - A central topic
@@ -60,10 +65,10 @@ def generate_mindmap_mistral(summary_text):
     model_id = "mistralai/Mistral-7B-Instruct-v0.1"
 
     quantization_config = BitsAndBytesConfig(load_in_4bit=True)
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, token=HF_TOKEN)
     model = AutoModelForCausalLM.from_pretrained(model_id,
                                                  device_map="auto",
-                                                 quantization_config=quantization_config)
+                                                 quantization_config=quantization_config, token=HF_TOKEN)
     generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
     output = generator(prompt, max_new_tokens=512, do_sample=False, return_full_text=False)
