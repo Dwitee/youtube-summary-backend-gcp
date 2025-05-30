@@ -4,9 +4,9 @@ import re
 # from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
 
 # Set your Hugging Face token as an environment variable: HF_TOKEN
-HF_TOKEN = os.environ.get("HF_TOKEN")
-if not HF_TOKEN:
-    raise EnvironmentError("HF_TOKEN environment variable not set.")
+# HF_TOKEN = os.environ.get("HF_TOKEN")
+# if not HF_TOKEN:
+#     raise EnvironmentError("HF_TOKEN environment variable not set.")
 
 PROMPT_TEMPLATE = """
 You are a helpful assistant. Convert the summary below into a mind map JSON with:
