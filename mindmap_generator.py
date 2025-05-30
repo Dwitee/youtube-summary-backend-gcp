@@ -62,7 +62,7 @@ def generate_mindmap_mistral(summary_text):
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
     print(f"[DEBUG] Prompt for Mistral model:\n{prompt}")
 
-    model_id = "google/flan-t5-base"
+    model_id = "google/flan-t5-small"
 
     tokenizer = AutoTokenizer.from_pretrained(model_id, token=HF_TOKEN)
     model = AutoModelForSeq2SeqLM.from_pretrained(
