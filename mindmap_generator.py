@@ -58,22 +58,16 @@ def generate_mindmap_transformer(summary_text):
         raise RuntimeError(f"[ERROR] Failed to parse transformer model output: {e}")
 
 def generate_mindmap_mistral(summary_text):
-    from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, BitsAndBytesConfig
+    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
     print(f"[DEBUG] Prompt for Mistral model:\n{prompt}")
 
     model_id = "google/flan-t5-base"
 
-    quantization_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        llm_int8_enable_fp32_cpu_offload=True
-    )
     tokenizer = AutoTokenizer.from_pretrained(model_id, token=HF_TOKEN)
     model = AutoModelForSeq2SeqLM.from_pretrained(
         model_id,
-        device_map="auto",
-        token=HF_TOKEN,
-        low_cpu_mem_usage=True
+        token=HF_TOKEN
     )
     generator = pipeline("text2text-generation", model=model, tokenizer=tokenizer)
 
