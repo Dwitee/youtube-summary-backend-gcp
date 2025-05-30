@@ -100,7 +100,7 @@ def generate_mindmap_gemini(summary_text):
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
     print(f"[DEBUG] Prompt for Gemini model:\n{prompt}")
 
-    model = TextGenerationModel.from_pretrained("gemini-2.5-flash-preview-05-20")
+    model = TextGenerationModel.from_pretrained("gemini-1.0-pro")
     response = model.predict(prompt, max_output_tokens=512, temperature=0.7)
     result = response.text.strip()
     print(f"[DEBUG] Gemini model response:\n{result}")
