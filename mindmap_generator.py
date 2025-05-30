@@ -99,7 +99,7 @@ def generate_mindmap_gemini(summary_text):
     genai_client = genai.Client(
         vertexai=True,
         project="secure-garden-460600-u4",
-        location="us-central1",
+        location="us-east4",
     )
 
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
