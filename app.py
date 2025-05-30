@@ -18,11 +18,11 @@ from mindmap_generator import generate_mindmap_transformer, generate_mindmap_mis
 whisper_model = whisper.load_model("tiny", device="cuda")
 
 # Add Zephyr model and tokenizer initialization
-from transformers import AutoModelForCausalLM, AutoTokenizer
+# from transformers import AutoModelForCausalLM, AutoTokenizer
 
-zephyr_model_name = "HuggingFaceH4/zephyr-7b-beta"
-zephyr_tokenizer = AutoTokenizer.from_pretrained(zephyr_model_name)
-zephyr_model = AutoModelForCausalLM.from_pretrained(zephyr_model_name, device_map="auto")
+# zephyr_model_name = "HuggingFaceH4/zephyr-7b-beta"
+# zephyr_tokenizer = AutoTokenizer.from_pretrained(zephyr_model_name)
+# zephyr_model = AutoModelForCausalLM.from_pretrained(zephyr_model_name, device_map="auto")
 
 app = Flask(__name__)
 CORS(app)
