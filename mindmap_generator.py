@@ -64,7 +64,10 @@ def generate_mindmap_mistral(summary_text):
 
     model_id = "mistralai/Mistral-7B-Instruct-v0.1"
 
-    quantization_config = BitsAndBytesConfig(load_in_4bit=True)
+    quantization_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        llm_int8_enable_fp32_cpu_offload=True
+    )
     tokenizer = AutoTokenizer.from_pretrained(model_id, token=HF_TOKEN)
     model = AutoModelForCausalLM.from_pretrained(model_id,
                                                  device_map="auto",
