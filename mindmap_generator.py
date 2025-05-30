@@ -58,20 +58,27 @@ def generate_mindmap_transformer(summary_text):
         raise RuntimeError(f"[ERROR] Failed to parse transformer model output: {e}")
 
 def generate_mindmap_mistral(summary_text):
-    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+    from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, BitsAndBytesConfig
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
     print(f"[DEBUG] Prompt for Mistral model:\n{prompt}")
 
-    model_id = "google/flan-t5-small"
+    model_id = "tiiuae/falcon-7b-instruct"
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id, token=HF_TOKEN)
-    model = AutoModelForSeq2SeqLM.from_pretrained(
-        model_id,
-        token=HF_TOKEN
+    quantization_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        llm_int8_enable_fp32_cpu_offload=True
     )
-    generator = pipeline("text2text-generation", model=model, tokenizer=tokenizer)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, token=HF_TOKEN)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id,
+        device_map="auto",
+        quantization_config=quantization_config,
+        token=HF_TOKEN,
+        low_cpu_mem_usage=True
+    )
+    generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
-    output = generator(prompt, max_new_tokens=512, do_sample=False)
+    output = generator(prompt, max_new_tokens=512, do_sample=False, return_full_text=False)
     print(f"[DEBUG] Raw Mistral model output:\n{output}")
     result = output[0].get("generated_text", "").strip()
     print(f"[DEBUG] Mistral model response:\n{result}")
@@ -85,3 +92,26 @@ def generate_mindmap_mistral(summary_text):
         return json.loads(json_str)
     except Exception as e:
         raise RuntimeError(f"[ERROR] Failed to parse Mistral model output: {e}")
+
+def generate_mindmap_gemini(summary_text):
+    from vertexai.preview.language_models import TextGenerationModel
+    import vertexai
+    vertexai.init(project="secure-garden-460600-u4", location="us-central1")
+
+    prompt = PROMPT_TEMPLATE.format(summary=summary_text)
+    print(f"[DEBUG] Prompt for Gemini model:\n{prompt}")
+
+    model = TextGenerationModel.from_pretrained("gemini-2.5-flash-preview-05-20")
+    response = model.predict(prompt, max_output_tokens=512, temperature=0.7)
+    result = response.text.strip()
+    print(f"[DEBUG] Gemini model response:\n{result}")
+
+    try:
+        json_match = re.search(r'({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', result, re.DOTALL)
+        if not json_match:
+            raise ValueError("Mind map JSON not found in Gemini model output.")
+        json_str = json_match.group(1)
+        print(f"[DEBUG] Extracted mind map JSON:\n{json_str}")
+        return json.loads(json_str)
+    except Exception as e:
+        raise RuntimeError(f"[ERROR] Failed to parse Gemini model output: {e}")
