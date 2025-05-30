@@ -71,7 +71,7 @@ def generate_mindmap_mistral(summary_text):
     )
     generator = pipeline("text2text-generation", model=model, tokenizer=tokenizer)
 
-    output = generator(prompt, max_new_tokens=512, do_sample=False, return_full_text=False)
+    output = generator(prompt, max_new_tokens=512, do_sample=False)
     print(f"[DEBUG] Raw Mistral model output:\n{output}")
     result = output[0].get("generated_text", "").strip()
     print(f"[DEBUG] Mistral model response:\n{result}")
