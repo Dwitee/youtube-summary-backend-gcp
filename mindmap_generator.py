@@ -93,17 +93,22 @@ def generate_mindmap_mistral(summary_text):
     #     raise RuntimeError(f"[ERROR] Failed to parse Mistral model output: {e}")
 
 def generate_mindmap_gemini(summary_text):
-    from vertexai.preview.language_models import TextGenerationModel
-    import vertexai
-    vertexai.init(project="secure-garden-460600-u4", location="us-central1")
+    from google import genai
+    from google.genai import types
+
+    genai_client = genai.Client(
+        vertexai=True,
+        project="secure-garden-460600-u4",
+        location="us-central1",
+    )
 
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
-    print(f"[DEBUG] Prompt for Gemini model:\n{prompt}")
+    print(f"[DEBUG] Prompt for Gemini GenAI SDK:\n{prompt}")
 
-    model = TextGenerationModel.from_pretrained("gemini-1.0-pro")
-    response = model.predict(prompt, max_output_tokens=512, temperature=0.7)
+    chat = genai_client.chats.create(model="gemini-1.0-pro-002")
+    response = chat.send_message(prompt)
     result = response.text.strip()
-    print(f"[DEBUG] Gemini model response:\n{result}")
+    print(f"[DEBUG] Gemini GenAI SDK response:\n{result}")
 
     try:
         json_match = re.search(r'({[^{}]*"central"[^{}]*"branches"[^{}]*{.*?}[^{}]*})', result, re.DOTALL)
