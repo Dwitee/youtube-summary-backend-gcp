@@ -62,16 +62,20 @@ def generate_mindmap_mistral(summary_text):
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
     print(f"[DEBUG] Prompt for Mistral model:\n{prompt}")
 
-    model_id = "mistralai/Mistral-7B-Instruct-v0.1"
+    model_id = "tiiuae/falcon-7b-instruct"
 
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
         llm_int8_enable_fp32_cpu_offload=True
     )
     tokenizer = AutoTokenizer.from_pretrained(model_id, token=HF_TOKEN)
-    model = AutoModelForCausalLM.from_pretrained(model_id,
-                                                 device_map="auto",
-                                                 quantization_config=quantization_config, token=HF_TOKEN)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id,
+        device_map="auto",
+        quantization_config=quantization_config,
+        token=HF_TOKEN,
+        low_cpu_mem_usage=True
+    )
     generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
     output = generator(prompt, max_new_tokens=512, do_sample=False, return_full_text=False)
