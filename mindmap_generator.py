@@ -105,7 +105,7 @@ def generate_mindmap_gemini(summary_text):
     prompt = PROMPT_TEMPLATE.format(summary=summary_text)
     print(f"[DEBUG] Prompt for Gemini GenAI SDK:\n{prompt}")
 
-    chat = genai_client.chats.create(model="gemini-1.0-pro-002")
+    chat = genai_client.chats.create(model="gemini-2.0-flash-001")
     response = chat.send_message(prompt)
     result = response.text.strip()
     print(f"[DEBUG] Gemini GenAI SDK response:\n{result}")
