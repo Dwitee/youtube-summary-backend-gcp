@@ -7,11 +7,11 @@ from summarize import summarize_text
 
 job_results = {}
 
-def process_job(file_path, job_id):
+def process_job(file_path, job_id, model_name):
     try:
-        print(f"[DEBUG] Processing job {job_id}")
+        print(f"[DEBUG] Processing job {job_id} with model: {model_name}")
         transcript = transcribe_with_whisper(file_path)
-        summary = summarize_text(transcript)
+        summary = summarize_text(transcript, model_name)
         job_results[job_id] = summary
         os.remove(file_path)
     except Exception as e:
@@ -21,10 +21,11 @@ def submit_job_handler():
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
     file = request.files["file"]
+    model_name = request.form.get("model_name", "t5-small")
     job_id = str(uuid.uuid4())
     file_path = f"/tmp/{job_id}.mp3"
     file.save(file_path)
-    Thread(target=process_job, args=(file_path, job_id)).start()
+    Thread(target=process_job, args=(file_path, job_id, model_name)).start()
     return jsonify({"job_id": job_id})
 
 def job_result_handler(job_id):
