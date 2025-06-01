@@ -16,7 +16,17 @@ def summarizer_gemini(text):
     prompt = """
 Chapterize the content by grouping the content into chapters and providing a summary for each chapter.
 Please only capture key events and highlights. If you are not sure about any info, please do not make it up. 
-Return the result in the JSON format with keys as follows : "chapterTitle", "chapterSummary".
+Return the result strictly as a JSON array of objects, without any commentary or extra text. Each object must contain two keys:
+- "chapterTitle": a short title or heading for the chapter.
+- "chapterSummary": a concise summary of that chapter.
+
+Example format:
+[
+  {
+    "chapterTitle": "Chapter 1: Introduction",
+    "chapterSummary": "This chapter introduces the main topic and outlines what will be covered."
+  }
+]
 
 \"\"\"
 {text}
