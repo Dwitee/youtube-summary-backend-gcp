@@ -15,10 +15,11 @@ Example format:
   }}
 ]
 
+Content:
+\"\"\"
+{content}
+\"\"\"
 """
-{text}
-"""
-""".strip()
 
 # Choose a lightweight model for faster CPU response, or change to bart-large-cnn for better summaries
 summarizer = pipeline("summarization", model="t5-small")
@@ -34,7 +35,7 @@ def summarizer_gemini(text):
         location="us-east4"
     )
 
-    prompt = CHAPTERIZE_PROMPT_TEMPLATE.format(text=text)
+    prompt = CHAPTERIZE_PROMPT_TEMPLATE.format(content=text)
 
     print(f"[DEBUG] Prompt for Gemini summarizer:\n{prompt}")
 
