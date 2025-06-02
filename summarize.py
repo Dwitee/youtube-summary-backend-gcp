@@ -6,6 +6,7 @@ summarizer = pipeline("summarization", model="t5-small")
 def summarizer_gemini(text):
     from google import genai
     import json
+    print(f"[DEBUG] About to summarize content using Gemini summarizer...")
 
     genai_client = genai.Client(
         vertexai=True,
