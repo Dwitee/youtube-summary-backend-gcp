@@ -25,6 +25,7 @@ Content:
 summarizer = pipeline("summarization", model="t5-small")
 
 def summarizer_gemini(text):
+    text = text.strip()
     from google import genai
     import json
     print(f"[DEBUG] About to summarize content using Gemini summarizer...")
@@ -51,11 +52,15 @@ def summarizer_gemini(text):
         raise RuntimeError(f"[ERROR] Failed to parse Gemini summary JSON: {e}")
 
 def summarize_text(text, model_name="t5-small"):
-    text = text.strip()
     
     if model_name.lower() == "gemini":
-        return summarizer_gemini(text)
-
+        summarized_text = summarize_t5_small(text)
+        return summarizer_gemini(summarized_text) # sending summarized text to gemini to save tokens
+    else:
+        return summarize_t5_small(text)
+    
+def summarize_t5_small(text):
+    text = text.strip()
     words = text.split()
     chunk_size = 400
     chunks = [words[i:i + chunk_size] for i in range(0, len(words), chunk_size)]
