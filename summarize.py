@@ -1,4 +1,5 @@
 from transformers import pipeline
+import re
 
 CHAPTERIZE_PROMPT_TEMPLATE = """
 Chapterize the content by grouping the content into chapters and providing a summary for each chapter.
@@ -43,6 +44,9 @@ def summarizer_gemini(text):
     chat = genai_client.chats.create(model="gemini-2.0-flash-001")
     response = chat.send_message(prompt)
     result = response.text.strip()
+    # Remove Markdown-style ```json or ``` wrappers if present
+    result = re.sub(r"^```(?:json)?\n", "", result)
+    result = re.sub(r"\n```$", "", result)
     print(f"[DEBUG] Gemini summarizer response:\n{result}")
 
     try:
