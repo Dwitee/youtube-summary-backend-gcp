@@ -1,5 +1,25 @@
 from transformers import pipeline
 
+CHAPTERIZE_PROMPT_TEMPLATE = """
+Chapterize the content by grouping the content into chapters and providing a summary for each chapter.
+Please only capture key events and highlights. If you are not sure about any info, please do not make it up. 
+Return the result strictly as a JSON array of objects, without any commentary or extra text. Each object must contain two keys:
+- "chapterTitle": a short title or heading for the chapter.
+- "chapterSummary": a concise summary of that chapter.
+
+Example format:
+[
+  {{
+    "chapterTitle": "Chapter 1: Introduction",
+    "chapterSummary": "This chapter introduces the main topic and outlines what will be covered."
+  }}
+]
+
+"""
+{text}
+"""
+""".strip()
+
 # Choose a lightweight model for faster CPU response, or change to bart-large-cnn for better summaries
 summarizer = pipeline("summarization", model="t5-small")
 
@@ -14,25 +34,7 @@ def summarizer_gemini(text):
         location="us-east4"
     )
 
-    prompt = """
-Chapterize the content by grouping the content into chapters and providing a summary for each chapter.
-Please only capture key events and highlights. If you are not sure about any info, please do not make it up. 
-Return the result strictly as a JSON array of objects, without any commentary or extra text. Each object must contain two keys:
-- "chapterTitle": a short title or heading for the chapter.
-- "chapterSummary": a concise summary of that chapter.
-
-Example format:
-[
-  {
-    "chapterTitle": "Chapter 1: Introduction",
-    "chapterSummary": "This chapter introduces the main topic and outlines what will be covered."
-  }
-]
-
-\"\"\"
-{text}
-\"\"\"
-""".strip().format(text=text)
+    prompt = CHAPTERIZE_PROMPT_TEMPLATE.format(text=text)
 
     print(f"[DEBUG] Prompt for Gemini summarizer:\n{prompt}")
 
