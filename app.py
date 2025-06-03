@@ -224,5 +224,34 @@ def serve_mindmap(filename):
         return "File not found", 404
     
 
+
+# New route: /upload-mindmap
+from datetime import datetime
+
+@app.route("/upload-mindmap", methods=["POST"])
+def upload_mindmap():
+    data = request.get_json()
+    html_content = data.get("html", "")
+
+    if not html_content:
+        return jsonify({"error": "Missing 'html' content"}), 400
+
+    try:
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"mindmap_{timestamp}.html"
+        output_dir = "/home/dwiteekrishnapanda/mindmaps"
+        os.makedirs(output_dir, exist_ok=True)
+        file_path = os.path.join(output_dir, filename)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        print(f"[DEBUG] Mindmap HTML saved to: {file_path}")
+        return jsonify({"filename": filename})
+    except Exception as e:
+        print(f"[ERROR] Failed to save mindmap HTML: {e}")
+        return jsonify({"error": f"Failed to save mindmap HTML: {str(e)}"}), 500
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)
