@@ -1,7 +1,7 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, VideoUnavailable
 import re
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import job_processor
 from summarize import summarize_text
@@ -212,5 +212,17 @@ def generate_mindmap():
     except Exception as e:
         print("Mind map generation failed:", str(e))
         return jsonify({"error": str(e)}), 500
+
+
+# Serve a mindmap HTML file from /tmp
+@app.route("/mindmap/<filename>")
+def serve_mindmap(filename):
+    file_path = os.path.join("/tmp", filename)
+    if os.path.exists(file_path):
+        return send_file(file_path, mimetype="text/html")
+    else:
+        return "File not found", 404
+    
+    
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)
