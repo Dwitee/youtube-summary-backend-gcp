@@ -217,12 +217,12 @@ def generate_mindmap():
 # Serve a mindmap HTML file from /tmp
 @app.route("/mindmap/<filename>")
 def serve_mindmap(filename):
-    file_path = os.path.join("/tmp", filename)
+    file_path = os.path.join("/home/dwiteekrishnapanda/mindmaps", filename)
     if os.path.exists(file_path):
         return send_file(file_path, mimetype="text/html")
     else:
         return "File not found", 404
     
-    
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)
