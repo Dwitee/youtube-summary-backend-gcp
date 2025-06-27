@@ -4,14 +4,30 @@ from threading import Thread
 from flask import request, jsonify
 from transcriber import transcribe_with_whisper
 from summarize import summarize_text
+import redis
+import hashlib
+
+r = redis.Redis(host='localhost', port=6379, db=0)
 
 job_results = {}
 
 def process_job(file_path, job_id, model_name):
     try:
+        file_hash = None
+        with open(file_path, "rb") as f:
+            file_hash = hashlib.md5(f.read()).hexdigest()
+        cached_transcript = r.get(f"{file_hash}_transcript")
+        cached_summary = r.get(f"{file_hash}_summary")
+        if cached_summary and cached_transcript:
+            print(f"[DEBUG] Cache hit for job {job_id}")
+            job_results[job_id] = cached_summary.decode()
+            os.remove(file_path)
+            return
         print(f"[DEBUG] Processing job {job_id} with model: {model_name}")
         transcript = transcribe_with_whisper(file_path)
         summary = summarize_text(transcript, model_name)
+        r.set(f"{file_hash}_transcript", transcript, ex=172800)
+        r.set(f"{file_hash}_summary", summary, ex=172800)
         job_results[job_id] = summary
         os.remove(file_path)
     except Exception as e:
