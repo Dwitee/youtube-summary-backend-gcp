@@ -13,6 +13,7 @@ import whisper
 import yt_dlp
 from mindmap_generator import generate_mindmap_transformer, generate_mindmap_mistral, generate_mindmap_gemini
 import hashlib
+import json
 cache_store = {}
 
 
@@ -216,7 +217,7 @@ def generate_mindmap():
     cached = r.get(cache_key)
     if cached:
         print(f"[DEBUG] Returning cached mindmap for model {model_type}")
-        return jsonify({"mindmap": cached})
+        return jsonify({"mindmap": json.loads(cached)})
 
     try:
         print(f"Generating mind map using model: {model_type}")  # Debug log
@@ -231,7 +232,7 @@ def generate_mindmap():
             return jsonify({"error": f"Unsupported model_type: {model_type}"}), 400
 
         mindmap_json = generator_fn(summary)
-        r.set(cache_key, mindmap_json, ex=172800)
+        r.set(cache_key, json.dumps(mindmap_json), ex=172800)
         return jsonify({"mindmap": mindmap_json})
     except Exception as e:
         print("Mind map generation failed:", str(e))
