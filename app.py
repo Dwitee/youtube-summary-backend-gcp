@@ -201,12 +201,22 @@ def job_result(job_id):
 
 @app.route("/generate-mindmap", methods=["POST"])
 def generate_mindmap():
+    import redis
+    r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+    import hashlib
+
     data = request.get_json()
     summary = data.get("summary", "").strip()
     model_type = data.get("model_type", "zephyr-gguf")  
 
     if not summary:
         return jsonify({"error": "Empty summary provided"}), 400
+
+    cache_key = f"{model_type}_mindmap_" + hashlib.md5(summary.encode("utf-8")).hexdigest()
+    cached = r.get(cache_key)
+    if cached:
+        print(f"[DEBUG] Returning cached mindmap for model {model_type}")
+        return jsonify({"mindmap": cached})
 
     try:
         print(f"Generating mind map using model: {model_type}")  # Debug log
@@ -221,6 +231,7 @@ def generate_mindmap():
             return jsonify({"error": f"Unsupported model_type: {model_type}"}), 400
 
         mindmap_json = generator_fn(summary)
+        r.set(cache_key, mindmap_json, ex=172800)
         return jsonify({"mindmap": mindmap_json})
     except Exception as e:
         print("Mind map generation failed:", str(e))
