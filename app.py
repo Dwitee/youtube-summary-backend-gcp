@@ -12,6 +12,8 @@ import os
 import whisper
 import yt_dlp
 from mindmap_generator import generate_mindmap_transformer, generate_mindmap_mistral, generate_mindmap_gemini
+import hashlib
+cache_store = {}
 
 
 # Rename Whisper model variable to whisper_model
@@ -156,9 +158,19 @@ def summarize_upload():
         return jsonify({"error": "Empty filename"}), 400
 
     try:
+        file_content = file.read()
+        file_hash = hashlib.md5(file_content).hexdigest()
+
+        if file_hash in cache_store:
+            print("✅ Returning cached summary.")
+            return jsonify({"summary": cache_store[file_hash]})
+
+        file.seek(0)
+
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = os.path.join(tmpdir, file.filename)
-            file.save(file_path)
+            with open(file_path, "wb") as f:
+                f.write(file_content)
 
             print("Transcribing uploaded file with Whisper...")
             full_text = transcribe_with_whisper(file_path)
@@ -169,6 +181,7 @@ def summarize_upload():
                 print("Transcript truncated to 400 words")
 
             summary = summarize_text(full_text)
+            cache_store[file_hash] = summary
             print("Sending summary response:", summary)
             return jsonify({"summary": summary})
     except Exception as e:
