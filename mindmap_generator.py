@@ -13,7 +13,7 @@ You are a helpful assistant. Convert the summary below into a mind map JSON with
 - A central topic
 - 3 to 5 key branches
 - 2 to 4 subpoints per branch
-
+- Each branch and subpoint label should include a relevant emoji based on the topic (e.g., 📘 for Introduction, 💡 for Ideas, 🧠 for Neural Networks, 📊 for Data, etc.)
 Format your response as:
 {{
   "central": "Main Topic",
