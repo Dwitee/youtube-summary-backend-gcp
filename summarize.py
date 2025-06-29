@@ -2,17 +2,20 @@ from transformers import pipeline
 import re
 
 CHAPTERIZE_PROMPT_TEMPLATE = """
-Chapterize the content by grouping the content into chapters and providing a summary for each chapter.
-Please only capture key events and highlights. If you are not sure about any info, please do not make it up. 
-Return the result strictly as a JSON array of objects, without any commentary or extra text. Each object must contain two keys:
-- "chapterTitle": a short title or heading for the chapter.
-- "chapterSummary": a concise summary of that chapter.
+Chapterize the content by dividing it into at least two meaningful chapters based on topic shifts or major events. 
+For each chapter, provide:
+1. A short, descriptive title.
+2. A detailed summary covering the most important points, key takeaways, and any relevant facts or arguments.
+
+Avoid speculation or made-up information. The format should be strictly a JSON array of objects, where each object contains:
+- "chapterTitle": a brief heading for the chapter.
+- "chapterSummary": a more elaborate summary of that chapter's content (3–5 sentences recommended).
 
 Example format:
 [
   {{
-    "chapterTitle": "Chapter 1: Introduction",
-    "chapterSummary": "This chapter introduces the main topic and outlines what will be covered."
+    "chapterTitle": "Chapter 1: Introduction to Machine Learning",
+    "chapterSummary": "This chapter provides an overview of machine learning, outlining its goals, common algorithms, and real-world applications. It sets the foundation for understanding supervised and unsupervised learning approaches."
   }}
 ]
 
