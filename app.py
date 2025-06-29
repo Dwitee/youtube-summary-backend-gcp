@@ -216,7 +216,7 @@ def generate_mindmap():
     cache_key = f"{model_type}_mindmap_" + hashlib.md5(summary.encode("utf-8")).hexdigest()
     cached = r.get(cache_key)
     if cached:
-        print(f"[DEBUG] Returning cached mindmap for model {model_type}")
+        print(f"[DEBUG] Returning cached mindmap key {cache_key} for model {model_type} ")
         return jsonify({"mindmap": json.loads(cached)})
 
     try:
