@@ -39,7 +39,7 @@ You are a helpful assistant. Convert the summary below into a mind map JSON with
 - 2 to 4 subpoints per branch
 - Each topic (central, branches, and points) must include:
   - "label": the title with a relevant emoji
-  - "narration": a simple sentence that explains it in accessible language for neurodiverse users
+  - "narration": a simple sentence that explains concept of this label with respect to the parent node and the whole summary
 
 Format your response as:
 {{
