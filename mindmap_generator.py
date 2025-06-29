@@ -50,11 +50,11 @@ Format your response as:
   "branches": [
     {{
       "label": "📘 Branch Title",
-      "narration": "This branch covers...",
+      "narration": "In this sub-topic we cover...",
       "points": [
         {{
           "label": "💡 Subpoint A",
-          "narration": "This subpoint means..."
+          "narration": "This talk about..."
         }},
         ...
       ]
