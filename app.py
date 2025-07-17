@@ -290,6 +290,8 @@ def save_summary():
     Expects JSON with at least 'id' field.
     """
     entry = request.get_json()
+     # Do not persist thumbnail in Redis
+    entry.pop("thumbnail", None)
     summary_id = entry.get("id")
     if not summary_id:
         return jsonify({"error": "Missing 'id'"}), 400
