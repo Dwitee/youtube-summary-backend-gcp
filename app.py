@@ -14,7 +14,12 @@ import yt_dlp
 from mindmap_generator import generate_mindmap_transformer, generate_mindmap_mistral, generate_mindmap_gemini
 import hashlib
 import json
+import redis
+from config import REDIS_URL
 cache_store = {}
+
+# Initialize Redis client for summary persistence
+redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 
 
 # Rename Whisper model variable to whisper_model
@@ -202,8 +207,8 @@ def job_result(job_id):
 
 @app.route("/generate-mindmap", methods=["POST"])
 def generate_mindmap():
-    import redis
-    r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+    # Use global Redis client
+    r = redis_client
     import hashlib
 
     data = request.get_json()
@@ -276,6 +281,36 @@ def upload_mindmap():
     except Exception as e:
         print(f"[ERROR] Failed to save mindmap HTML: {e}")
         return jsonify({"error": f"Failed to save mindmap HTML: {str(e)}"}), 500
+
+
+@app.route("/save-summary", methods=["POST"])
+def save_summary():
+    """
+    Save summary entry as JSON under key summary:<id> in Redis.
+    Expects JSON with at least 'id' field.
+    """
+    entry = request.get_json()
+    summary_id = entry.get("id")
+    if not summary_id:
+        return jsonify({"error": "Missing 'id'"}), 400
+    key = f"summary:{summary_id}"
+    redis_client.set(key, json.dumps(entry))
+    return jsonify({"status": "saved", "id": summary_id}), 201
+
+@app.route("/list-summaries", methods=["GET"])
+def list_summaries():
+    """
+    List all saved summary entries from Redis.
+    """
+    keys = redis_client.keys("summary:*")
+    entries = []
+    for key in keys:
+        data = redis_client.get(key)
+        try:
+            entries.append(json.loads(data))
+        except Exception:
+            continue
+    return jsonify(entries), 200
 
 
 if __name__ == "__main__":
