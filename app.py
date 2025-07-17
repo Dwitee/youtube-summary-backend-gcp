@@ -306,10 +306,10 @@ def list_summaries():
     entries = []
     for key in keys:
         data = redis_client.get(key)
-        try:
-            entries.append(json.loads(data))
-        except Exception:
-            continue
+        entry = json.loads(data)
+        # remove the thumbnail field if you don't want to ship it
+        entry.pop("thumbnail", None)
+        entries.append(entry)
     return jsonify(entries), 200
 
 
