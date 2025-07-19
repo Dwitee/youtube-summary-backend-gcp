@@ -16,6 +16,8 @@ import hashlib
 import json
 import redis
 from config import REDIS_URL
+import os
+from google.cloud import storage
 cache_store = {}
 
 # Initialize Redis client for summary persistence
@@ -32,7 +34,12 @@ whisper_model = whisper.load_model("tiny", device="cuda")
 # zephyr_tokenizer = AutoTokenizer.from_pretrained(zephyr_model_name)
 # zephyr_model = AutoModelForCausalLM.from_pretrained(zephyr_model_name, device_map="auto")
 
+
 app = Flask(__name__)
+# Google Cloud Storage setup
+GCS_BUCKET = os.environ['GCS_BUCKET_NAME']
+storage_client = storage.Client()
+bucket = storage_client.bucket(GCS_BUCKET)
 CORS(app)
 
 @app.route("/summarize-text", methods=["POST"])
@@ -281,6 +288,28 @@ def upload_mindmap():
     except Exception as e:
         print(f"[ERROR] Failed to save mindmap HTML: {e}")
         return jsonify({"error": f"Failed to save mindmap HTML: {str(e)}"}), 500
+
+@app.route('/api/upload-thumb', methods=['POST'])
+def upload_thumbnail():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    filename = file.filename  # expected "<id>.png"
+    blob = bucket.blob(f'thumbnails/{filename}')
+    blob.upload_from_file(file.stream, content_type=file.mimetype)
+    blob.make_public()
+    return jsonify({"thumbUrl": blob.public_url}), 200
+
+@app.route('/api/upload-video', methods=['POST'])
+def upload_video():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    filename = file.filename  # expected "<id>.webm"
+    blob = bucket.blob(f'videos/{filename}')
+    blob.upload_from_file(file.stream, content_type=file.mimetype)
+    blob.make_public()
+    return jsonify({"videoUrl": blob.public_url}), 200
 
 
 @app.route("/save-summary", methods=["POST"])
