@@ -298,7 +298,9 @@ def upload_thumbnail():
     blob = bucket.blob(f'thumbnails/{filename}')
     blob.upload_from_file(file.stream, content_type=file.mimetype)
     blob.make_public()
-    return jsonify({"thumbUrl": blob.public_url}), 200
+    thumb_url = blob.public_url
+    print(f"[DEBUG] upload_thumbnail succeeded: {thumb_url}")  # Debug log
+    return jsonify({"thumbUrl": thumb_url}), 200
 
 @app.route('/api/upload-video', methods=['POST'])
 def upload_video():
@@ -320,7 +322,7 @@ def save_summary():
     """
     entry = request.get_json()
      # Do not persist thumbnail in Redis
-    entry.pop("thumbnail", None)
+    # entry.pop("thumbnail", None)
     summary_id = entry.get("id")
     if not summary_id:
         return jsonify({"error": "Missing 'id'"}), 400
