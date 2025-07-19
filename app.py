@@ -297,7 +297,6 @@ def upload_thumbnail():
     filename = file.filename  # expected "<id>.png"
     blob = bucket.blob(f'thumbnails/{filename}')
     blob.upload_from_file(file.stream, content_type=file.mimetype)
-    blob.make_public()
     thumb_url = blob.public_url
     print(f"[DEBUG] upload_thumbnail succeeded: {thumb_url}")  # Debug log
     return jsonify({"thumbUrl": thumb_url}), 200
@@ -310,7 +309,6 @@ def upload_video():
     filename = file.filename  # expected "<id>.webm"
     blob = bucket.blob(f'videos/{filename}')
     blob.upload_from_file(file.stream, content_type=file.mimetype)
-    blob.make_public()
     return jsonify({"videoUrl": blob.public_url}), 200
 
 
