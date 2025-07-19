@@ -59,12 +59,9 @@ def summarizer_gemini(text):
         raise RuntimeError(f"[ERROR] Failed to parse Gemini summary JSON: {e}")
 
 def summarize_text(text, model_name="gemini"):
-    
-    if model_name.lower() == "gemini":
-        summarized_text = summarize_t5_small(text)
-        return summarizer_gemini(summarized_text) # sending summarized text to gemini to save tokens
-    else:
-        return summarize_t5_small(text)
+    summarized_text = summarize_t5_small(text)
+    return summarizer_gemini(summarized_text) # sending summarized text to gemini to save tokens
+
     
 def summarize_t5_small(text):
     text = text.strip()
