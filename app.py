@@ -289,7 +289,7 @@ def upload_mindmap():
         print(f"[ERROR] Failed to save mindmap HTML: {e}")
         return jsonify({"error": f"Failed to save mindmap HTML: {str(e)}"}), 500
 
-@app.route('/api/upload-thumb', methods=['POST'])
+@app.route('/upload-thumb', methods=['POST'])
 def upload_thumbnail():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -302,7 +302,7 @@ def upload_thumbnail():
     print(f"[DEBUG] upload_thumbnail succeeded: {thumb_url}")  # Debug log
     return jsonify({"thumbUrl": thumb_url}), 200
 
-@app.route('/api/upload-video', methods=['POST'])
+@app.route('/upload-video', methods=['POST'])
 def upload_video():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
