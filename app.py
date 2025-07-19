@@ -202,9 +202,25 @@ def summarize_upload():
         return jsonify({"error": f"Upload summarization failed: {str(e)}"}), 500
 
 
+
 @app.route("/submit-job", methods=["POST"])
 def submit_job():
     return job_processor.submit_job_handler()
+
+# New route: /submit-video-to-summarize
+@app.route("/submit-video-to-summarize", methods=["POST"])
+def submit_video_to_summarize():
+    """
+    Enqueue a video summarization job.
+    Expects JSON payload with 'id', 'title', 'thumbnailUrl', and 'videoUrl'.
+    """
+    data = request.get_json()
+    print(f"[DEBUG] submit-video-to-summarize called with payload: {data}")
+    # Basic validation
+    if not data or not all(k in data for k in ("id", "title", "thumbnailUrl", "videoUrl")):
+        return jsonify({"error": "Missing one of id, title, thumbnailUrl, videoUrl"}), 400
+    # Delegate to job processor
+    return job_processor.submit_video_to_summarize_handler()
 
 @app.route("/job-result/<job_id>", methods=["GET"])
 def job_result(job_id):

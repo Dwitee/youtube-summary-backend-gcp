@@ -7,6 +7,9 @@ from summarize import summarize_text
 import redis
 import hashlib
 
+import requests
+import ffmpeg
+
 r = redis.Redis(host='localhost', port=6379, db=0)
 
 job_results = {}
@@ -48,3 +51,34 @@ def job_result_handler(job_id):
     if job_id in job_results:
         return jsonify({"summary": job_results[job_id]})
     return jsonify({"status": "processing"})
+
+
+def submit_video_to_summarize_handler():
+    """
+    Enqueue a video summarization job by downloading the video,
+    extracting audio via ffmpeg, then processing it.
+    Expects JSON with 'id', 'title', 'thumbnailUrl', and 'videoUrl'.
+    """
+    data = request.get_json()
+    # Validate payload
+    if not data or not all(k in data for k in ("id", "title", "thumbnailUrl", "videoUrl")):
+        return jsonify({"error": "Missing one of id, title, thumbnailUrl, videoUrl"}), 400
+    job_id = str(uuid.uuid4())
+    video_url = data["videoUrl"]
+    # Download video to temp file
+    video_path = f"/tmp/{job_id}_video"
+    resp = requests.get(video_url, stream=True)
+    if resp.status_code != 200:
+        return jsonify({"error": "Failed to download video"}), resp.status_code
+    with open(video_path, "wb") as vf:
+        for chunk in resp.iter_content(chunk_size=8192):
+            vf.write(chunk)
+    # Extract audio to WAV
+    audio_path = f"/tmp/{job_id}.wav"
+    ffmpeg.input(video_path).output(
+        audio_path, format="wav", acodec="pcm_s16le", ar="16000", ac=1
+    ).run(overwrite_output=True)
+    os.remove(video_path)
+    # Enqueue processing of the audio file
+    Thread(target=process_job, args=(audio_path, job_id, data.get("model_name", "t5-small"))).start()
+    return jsonify({"job_id": job_id})
