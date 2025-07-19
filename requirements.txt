@@ -1,7 +1,6 @@
 gunicorn
 flask
 flask-cors
-transformers
 git+https://github.com/openai/whisper.git
 yt-dlp
 youtube-transcript-api

@@ -58,7 +58,7 @@ def summarizer_gemini(text):
     except json.JSONDecodeError as e:
         raise RuntimeError(f"[ERROR] Failed to parse Gemini summary JSON: {e}")
 
-def summarize_text(text, model_name="t5-small"):
+def summarize_text(text, model_name="gemini"):
     
     if model_name.lower() == "gemini":
         summarized_text = summarize_t5_small(text)

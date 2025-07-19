@@ -80,5 +80,5 @@ def submit_video_to_summarize_handler():
     ).run(overwrite_output=True)
     os.remove(video_path)
     # Enqueue processing of the audio file
-    Thread(target=process_job, args=(audio_path, job_id, data.get("model_name", "t5-small"))).start()
+    Thread(target=process_job, args=(audio_path, job_id, data.get("model_name", "gemini"))).start()
     return jsonify({"job_id": job_id})
