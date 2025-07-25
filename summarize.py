@@ -47,7 +47,7 @@ def summarizer_gemini(text):
     print("[DEBUG] GenAI client initialized", flush=True)
 
     prompt = CHAPTERIZE_PROMPT_TEMPLATE.format(content=text)
-    print(f"[DEBUG] Prompt for Gemini summarizer:\n{prompt}")
+    print(f"[DEBUG] Prompt for Gemini summarizer:\n{prompt}", flush=True)
     print("[DEBUG] Creating chat object...", flush=True)
 
     chat = genai_client.chats.create(model="gemini-2.0-flash-001")
@@ -68,6 +68,8 @@ def summarizer_gemini(text):
     print(f"  Length: {len(result)} characters")
     print(f"  Preview: {result[:200]!r}")  # show repr of first 200 chars
     print(f"[DEBUG] End of preview")
+    import sys
+    sys.stdout.flush()
 
     try:
         json_data = json.loads(result)
