@@ -33,22 +33,31 @@ summarizer = pipeline("summarization", model="t5-small")
 
 def summarizer_gemini(text):
     text = text.strip()
+    print(f"[DEBUG] summarizer_gemini input text (first 500 chars):\n{text[:500]!r}", flush=True)
     from google import genai
     import json
-    print(f"[DEBUG] About to summarize content using Gemini summarizer...")
+    print(f"[DEBUG] About to summarize content using Gemini summarizer...", flush=True)
+    print("[DEBUG] Initializing Gemini GenAI client...", flush=True)
 
     genai_client = genai.Client(
         vertexai=True,
         project="secure-garden-460600-u4",
         location="us-east4"
     )
+    print("[DEBUG] GenAI client initialized", flush=True)
 
     prompt = CHAPTERIZE_PROMPT_TEMPLATE.format(content=text)
-
     print(f"[DEBUG] Prompt for Gemini summarizer:\n{prompt}")
+    print("[DEBUG] Creating chat object...", flush=True)
 
     chat = genai_client.chats.create(model="gemini-2.0-flash-001")
+    print(f"[DEBUG] Chat object created: {chat}", flush=True)
+    print("[DEBUG] Sending prompt to Gemini...", flush=True)
+
     response = chat.send_message(prompt)
+    print(f"[DEBUG] Received raw response object: {response}", flush=True)
+    print(f"[DEBUG] Received raw response text (first 200 chars): {response.text[:200]!r}", flush=True)
+
     result = response.text.strip()
     # Remove Markdown-style ```json or ``` wrappers if present
     result = re.sub(r"^```(?:json)?\n", "", result)
