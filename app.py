@@ -25,7 +25,9 @@ redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 
 
 # Rename Whisper model variable to whisper_model
-whisper_model = whisper.load_model("tiny", device="cuda")
+import torch
+device = "cuda" if torch.cuda.is_available() else "cpu"
+whisper_model = whisper.load_model("tiny", device=device)
 
 # Add Zephyr model and tokenizer initialization
 # from transformers import AutoModelForCausalLM, AutoTokenizer
