@@ -53,16 +53,24 @@ def summarizer_gemini(text):
     # Remove Markdown-style ```json or ``` wrappers if present
     result = re.sub(r"^```(?:json)?\n", "", result)
     result = re.sub(r"\n```$", "", result)
-    print(f"[DEBUG] Gemini summarizer response:\n{result}")
+    # Debug: inspect cleaned result
+    print(f"[DEBUG] Gemini summarizer response (stripped):")
+    print(f"  Type: {type(result)}")
+    print(f"  Length: {len(result)} characters")
+    print(f"  Preview: {result[:200]!r}")  # show repr of first 200 chars
+    print(f"[DEBUG] End of preview")
 
     try:
         json_data = json.loads(result)
         return json.dumps(json_data, indent=2)
     except json.JSONDecodeError as e:
+        print(f"[ERROR] Failed to parse Gemini summary JSON: {e}")
+        print(f"[ERROR] Full result causing parse failure:\n{result!r}")
         raise RuntimeError(f"[ERROR] Failed to parse Gemini summary JSON: {e}")
 
 def summarize_text(text, model_name="gemini"):
     summarized_text = summarize_t5_small(text)
+    print(f"[DEBUG] T5 summarized text:\n{summarized_text}")
     return summarizer_gemini(summarized_text) # sending summarized text to gemini to save tokens
 
     
