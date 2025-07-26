@@ -2,20 +2,28 @@ from transformers import pipeline
 import re
 
 CHAPTERIZE_PROMPT_TEMPLATE = """
-Chapterize the content by dividing it into at least two meaningful chapters based on topic shifts or major events. 
+Chapterize the content by dividing it into at least two meaningful chapters based on topic shifts or major events.
 For each chapter, provide:
-1. A short, descriptive title.
-2. A detailed summary covering the most important points, key takeaways, and any relevant facts or arguments.
+  1. A short, descriptive title.
+  2. The timestamp where this chapter starts, in the format mm:ss or HH:MM:SS.
+  3. A detailed summary covering the most important points, key takeaways, and any relevant facts or arguments.
 
-Avoid speculation or made-up information. The format should be strictly a JSON array of objects, where each object contains:
-- "chapterTitle": a brief heading for the chapter.
-- "chapterSummary": a more elaborate summary of that chapter's content (3–5 sentences recommended).
+Avoid speculation or made-up information. The output must be strictly a JSON array of objects, where each object contains:
+  - "chapterTitle": a brief heading for the chapter.
+  - "startTime": the start time of the chapter in the video.
+  - "chapterSummary": a more elaborate summary of that chapter's content (3–5 sentences recommended).
 
-Example format:
+Example output:
 [
   {{
     "chapterTitle": "Chapter 1: Introduction to Machine Learning",
+    "startTime": "00:00:55",
     "chapterSummary": "This chapter provides an overview of machine learning, outlining its goals, common algorithms, and real-world applications. It sets the foundation for understanding supervised and unsupervised learning approaches."
+  }},
+  {{
+    "chapterTitle": "Chapter 2: Supervised vs Unsupervised Learning",
+    "startTime": "00:05:20",
+    "chapterSummary": "This chapter covers the difference between supervised and unsupervised learning, discussing typical algorithms like regression and clustering, and explaining when to use each approach."
   }}
 ]
 
@@ -59,8 +67,8 @@ def summarizer_gemini(text):
         raise RuntimeError(f"[ERROR] Failed to parse Gemini summary JSON: {e}")
 
 def summarize_text(text, model_name="gemini"):
-    summarized_text = summarize_t5_small(text)
-    return summarizer_gemini(summarized_text) # sending summarized text to gemini to save tokens
+    # summarized_text = summarize_t5_small(text)
+    return summarizer_gemini(text) # sending summarized text to gemini to save tokens
 
     
 def summarize_t5_small(text):
