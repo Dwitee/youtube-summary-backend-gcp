@@ -2,7 +2,7 @@ from transformers import pipeline
 import re
 
 CHAPTERIZE_PROMPT_TEMPLATE = """
-Chapterize the content by dividing it into at least two meaningful chapters based on topic shifts or major events.
+Chapterize the content by dividing it into as many meaningful chapters as appropriate based on topic shifts, changes in speaker, or major events. For a 20-minute video, aim for at least 5–8 chapters if possible.
 For each chapter, provide:
   1. A short, descriptive title.
   2. The timestamp where this chapter starts, in the format mm:ss or HH:MM:SS.
