@@ -18,6 +18,17 @@ import redis
 from config import REDIS_URL
 import os
 from google.cloud import storage
+import logging
+import google.cloud.logging
+from google.cloud.logging.handlers import CloudLoggingHandler
+
+# Set up Google Cloud Logging
+client = google.cloud.logging.Client()
+handler = CloudLoggingHandler(client)
+cloud_logger = logging.getLogger("cloudLogger")
+cloud_logger.setLevel(logging.INFO)
+cloud_logger.addHandler(handler)
+
 cache_store = {}
 
 # Initialize Redis client for summary persistence
@@ -49,16 +60,16 @@ def summarize():
     data = request.get_json()
     text = data.get("text", "").strip()
 
-    print("Received text:", text[:100])  # Debug log
+    cloud_logger.info(f"Received text: {text[:100]}")  # Debug log
     if not text:
         return jsonify({"error": "Empty input"}), 400
 
     try:
         summary = summarize_text(text)
-        print("Generated summary:", summary)
+        cloud_logger.info(f"Generated summary: {summary}")
         return jsonify({"summary": summary})
     except Exception as e:
-        print("Error:", str(e))
+        cloud_logger.error(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -77,7 +88,7 @@ def summarize_url():
         return jsonify({"error": "Invalid YouTube URL"}), 400
 
     video_id = match.group(1)
-    print("Extracted Video ID:", video_id)  #  Debug log
+    cloud_logger.info(f"Extracted Video ID: {video_id}")  #  Debug log
 
     try:
         transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
@@ -95,13 +106,13 @@ def summarize_url():
     # Truncate and summarize using existing summarize_text function
     if len(full_text.split()) > 400:
         full_text = " ".join(full_text.split()[:400])
-        print("Transcript truncated to 400 words")  #  Debug log
+        cloud_logger.info("Transcript truncated to 400 words")  #  Debug log
 
     try:
         summary = summarize_text(full_text)
         return jsonify({"summary": summary})
     except Exception as e:
-        print("Summarization failed:", str(e))  #  Debug log
+        cloud_logger.error(f"Summarization failed: {str(e)}")  #  Debug log
         return jsonify({"error": str(e)}), 500
 
 @app.route("/summarize-url-whisper", methods=["POST"])
@@ -112,7 +123,7 @@ def summarize_url_whisper():
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
-    print("Downloading audio from URL:", url)
+    cloud_logger.info(f"Downloading audio from URL: {url}")
 
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -131,32 +142,32 @@ def summarize_url_whisper():
             }
 
             if os.path.exists(cookie_path):
-                print("✅ Using cookiefile for authentication.")
+                cloud_logger.info("✅ Using cookiefile for authentication.")
                 ydl_opts['cookiefile'] = cookie_path
             else:
-                print("⚠️ No cookiefile found. Proceeding without cookies.")
+                cloud_logger.info("⚠️ No cookiefile found. Proceeding without cookies.")
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
 
-            print("Audio downloaded, transcribing with Whisper...")
-            print("Checking if file exists:", os.path.exists(final_audio_path))
+            cloud_logger.info("Audio downloaded, transcribing with Whisper...")
+            cloud_logger.info(f"Checking if file exists: {os.path.exists(final_audio_path)}")
             result = whisper_model.transcribe(final_audio_path)
             full_text = result["text"]
-            print("Transcription complete. Word count:", len(full_text.split()))
+            cloud_logger.info(f"Transcription complete. Word count: {len(full_text.split())}")
     except Exception as e:
-        print("Whisper transcription failed:", str(e))
+        cloud_logger.error(f"Whisper transcription failed: {str(e)}")
         return jsonify({"error": f"Whisper transcription failed: {str(e)}"}), 500
 
     if len(full_text.split()) > 400:
         full_text = " ".join(full_text.split()[:400])
-        print("Transcript truncated to 400 words")  # 🔍 Debug log
+        cloud_logger.info("Transcript truncated to 400 words")  # 🔍 Debug log
 
     try:
         summary = summarize_text(full_text)
         return jsonify({"summary": summary})
     except Exception as e:
-        print("Summarization failed:", str(e))
+        cloud_logger.error(f"Summarization failed: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -177,7 +188,7 @@ def summarize_upload():
         file_hash = hashlib.md5(file_content).hexdigest()
 
         if file_hash in cache_store:
-            print("✅ Returning cached summary.")
+            cloud_logger.info("✅ Returning cached summary.")
             return jsonify({"summary": cache_store[file_hash]})
 
         file.seek(0)
@@ -187,20 +198,27 @@ def summarize_upload():
             with open(file_path, "wb") as f:
                 f.write(file_content)
 
-            print("Transcribing uploaded file with Whisper...")
+            cloud_logger.info("Transcribing uploaded file with Whisper...")
+            import time
+            whisper_start = time.time()
             full_text = transcribe_with_whisper(file_path)
-            print("Transcription complete. Word count:", len(full_text.split()))
+            whisper_duration = time.time() - whisper_start
+            cloud_logger.info(f"[TIMING] transcribe_with_whisper took {whisper_duration:.2f} seconds")
+            cloud_logger.info(f"Transcription complete. Word count: {len(full_text.split())}")
 
             if len(full_text.split()) > 400:
                 full_text = " ".join(full_text.split()[:400])
-                print("Transcript truncated to 400 words")
+                cloud_logger.info("Transcript truncated to 400 words")
 
+            summarize_start = time.time()
             summary = summarize_text(full_text)
+            summarize_duration = time.time() - summarize_start
+            cloud_logger.info(f"[TIMING] summarize_text took {summarize_duration:.2f} seconds")
             cache_store[file_hash] = summary
-            print("Sending summary response:", summary)
+            cloud_logger.info(f"Sending summary response: {summary}")
             return jsonify({"summary": summary})
     except Exception as e:
-        print("Upload summarization failed:", str(e))
+        cloud_logger.error(f"Upload summarization failed: {str(e)}")
         return jsonify({"error": f"Upload summarization failed: {str(e)}"}), 500
 
 
@@ -217,7 +235,7 @@ def submit_video_to_summarize():
     Expects JSON payload with 'id', 'title', 'thumbnailUrl', and 'videoUrl'.
     """
     data = request.get_json()
-    print(f"[DEBUG] submit-video-to-summarize called with payload: {data}")
+    cloud_logger.info(f"[DEBUG] submit-video-to-summarize called with payload: {data}")
     # Basic validation
     if not data or not all(k in data for k in ("id", "title", "thumbnailUrl", "videoUrl")):
         return jsonify({"error": "Missing one of id, title, thumbnailUrl, videoUrl"}), 400
@@ -246,11 +264,14 @@ def generate_mindmap():
     cache_key = f"{model_type}_mindmap_" + hashlib.md5(summary.encode("utf-8")).hexdigest()
     cached = r.get(cache_key)
     if cached:
-        print(f"[DEBUG] Returning cached mindmap key {cache_key} for model {model_type} ")
+        cloud_logger.info(f"[DEBUG] Returning cached mindmap key {cache_key} for model {model_type} ")
         return jsonify({"mindmap": json.loads(cached)})
 
     try:
-        print(f"Generating mind map using model: {model_type}")  # Debug log
+        cloud_logger.info(f"Generating mind map using model: {model_type}")  # Debug log
+        import time
+        start_time = time.time()
+        cloud_logger.info(f"[DEBUG] Mind map generation started for model_type: {model_type}")
         model_dispatch = {
             "transformer": generate_mindmap_transformer,
             "mistral": generate_mindmap_mistral,
@@ -262,10 +283,12 @@ def generate_mindmap():
             return jsonify({"error": f"Unsupported model_type: {model_type}"}), 400
 
         mindmap_json = generator_fn(summary)
+        duration = time.time() - start_time
+        cloud_logger.info(f"[DEBUG] Mind map generation using {model_type} took {duration:.2f} seconds")
         r.set(cache_key, json.dumps(mindmap_json), ex=172800)
         return jsonify({"mindmap": mindmap_json})
     except Exception as e:
-        print("Mind map generation failed:", str(e))
+        cloud_logger.error(f"Mind map generation failed: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -301,10 +324,10 @@ def upload_mindmap():
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(html_content)
 
-        print(f"[DEBUG] Mindmap HTML saved to: {file_path}")
+        cloud_logger.info(f"[DEBUG] Mindmap HTML saved to: {file_path}")
         return jsonify({"filename": filename})
     except Exception as e:
-        print(f"[ERROR] Failed to save mindmap HTML: {e}")
+        cloud_logger.error(f"[ERROR] Failed to save mindmap HTML: {e}")
         return jsonify({"error": f"Failed to save mindmap HTML: {str(e)}"}), 500
 
 @app.route('/upload-thumb', methods=['POST'])
@@ -316,7 +339,7 @@ def upload_thumbnail():
     blob = bucket.blob(f'thumbnails/{filename}')
     blob.upload_from_file(file.stream, content_type=file.mimetype)
     thumb_url = blob.public_url
-    print(f"[DEBUG] upload_thumbnail succeeded: {thumb_url}")  # Debug log
+    cloud_logger.info(f"[DEBUG] upload_thumbnail succeeded: {thumb_url}")  # Debug log
     return jsonify({"thumbUrl": thumb_url}), 200
 
 @app.route('/upload-video', methods=['POST'])

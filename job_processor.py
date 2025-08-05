@@ -6,9 +6,20 @@ from transcriber import transcribe_with_whisper
 from summarize import summarize_text
 import redis
 import hashlib
+import time
 
 import requests
 import ffmpeg
+
+import logging
+import google.cloud.logging
+from google.cloud.logging.handlers import CloudLoggingHandler
+
+client = google.cloud.logging.Client()
+handler = CloudLoggingHandler(client)
+cloud_logger = logging.getLogger("cloudLogger")
+cloud_logger.setLevel(logging.INFO)
+cloud_logger.addHandler(handler)
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -22,13 +33,18 @@ def process_job(file_path, job_id, model_name):
         cached_transcript = r.get(f"{file_hash}_transcript")
         cached_summary = r.get(f"{file_hash}_summary")
         if cached_summary and cached_transcript:
-            print(f"[DEBUG] Cache hit for job {job_id}")
+            cloud_logger.info(f"[DEBUG] Cache hit for job {job_id}")
             job_results[job_id] = cached_summary.decode()
             os.remove(file_path)
             return
-        print(f"[DEBUG] Processing job {job_id} with model: {model_name}")
+        cloud_logger.info(f"[DEBUG] Processing job {job_id} with model: {model_name}")
+        start_transcribe = time.time()
         transcript = transcribe_with_whisper(file_path)
+        duration = time.time() - start_transcribe
+        cloud_logger.info(f"[TIMING] transcribe_with_whisper took {duration:.2f} seconds")
+        start_summarize = time.time()
         summary = summarize_text(transcript, model_name)
+        cloud_logger.info(f"[TIMING] Summarization took {time.time() - start_summarize:.2f} seconds")
         r.set(f"{file_hash}_transcript", transcript, ex=172800)
         r.set(f"{file_hash}_summary", summary, ex=172800)
         job_results[job_id] = summary
