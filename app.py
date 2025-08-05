@@ -242,6 +242,64 @@ def submit_video_to_summarize():
     # Delegate to job processor
     return job_processor.submit_video_to_summarize_handler()
 
+# New route: /download-youtube-and-submit
+@app.route("/download-youtube-and-submit", methods=["POST"])
+def download_youtube_and_submit():
+    """
+    Accepts a YouTube URL, validates and downloads the first 7 minutes,
+    uploads the video to GCS, and returns metadata for processing.
+    """
+    data = request.get_json()
+    url = data.get("url")
+
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
+
+    # Validate YouTube URL
+    match = re.search(r"(?:v=|youtu\.be/)([a-zA-Z0-9_-]{11})", url)
+    if not match:
+        return jsonify({"error": "Invalid YouTube URL"}), 400
+
+    video_id = match.group(1)
+
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = os.path.join(tmpdir, f"{video_id}.mp4")
+            ydl_opts = {
+                'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
+                'outtmpl': output_path,
+                'quiet': True,
+                'download_ranges': {'video': [{'start_time': 0, 'end_time': 420}]},  # 7 minutes
+                'merge_output_format': 'mp4',
+            }
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+
+            if not os.path.exists(output_path):
+                raise Exception("Video not downloaded")
+
+            # Upload to GCS
+            blob = bucket.blob(f'videos/{video_id}.mp4')
+            with open(output_path, "rb") as f:
+                blob.upload_from_file(f, content_type="video/mp4")
+
+            video_url = blob.public_url
+
+            # Prepare minimal metadata
+            payload = {
+                "id": video_id,
+                "title": f"YouTube_{video_id}",
+                "thumbnailUrl": f"https://img.youtube.com/vi/{video_id}/0.jpg",
+                "videoUrl": video_url,
+            }
+
+            return jsonify(payload), 200
+
+    except Exception as e:
+        cloud_logger.error(f"[ERROR] YouTube download failed: {str(e)}")
+        return jsonify({"error": f"YouTube download failed: {str(e)}"}), 500
+
 @app.route("/job-result/<job_id>", methods=["GET"])
 def job_result(job_id):
     return job_processor.job_result_handler(job_id)
