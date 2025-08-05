@@ -284,7 +284,7 @@ def generate_mindmap():
 
         mindmap_json = generator_fn(summary)
         duration = time.time() - start_time
-        cloud_logger.info(f"[DEBUG] Mind map generation using {model_type} took {duration:.2f} seconds")
+        cloud_logger.info(f"[TIMING] Mind map generation using {model_type} took {duration:.2f} seconds")
         r.set(cache_key, json.dumps(mindmap_json), ex=172800)
         return jsonify({"mindmap": mindmap_json})
     except Exception as e:
