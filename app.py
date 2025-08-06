@@ -270,9 +270,9 @@ def download_youtube_and_submit():
                 'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
                 'outtmpl': output_path,
                 'quiet': True,
-                'download_ranges': {'video': [{'start_time': 0, 'end_time': 420}]},  # 7 minutes
                 'merge_output_format': 'mp4',
-            }
+                'download_sections': '*00:00:00-00:07:00',  # <-- download only first 7 minutes
+}
 
             if os.path.exists(cookie_path):
                 cloud_logger.info("✅ Using cookiefile for authentication.")
