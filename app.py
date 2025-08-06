@@ -265,6 +265,7 @@ def download_youtube_and_submit():
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = os.path.join(tmpdir, f"{video_id}.mp4")
+            cookie_path = "youtube_cookies.txt"
             ydl_opts = {
                 'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
                 'outtmpl': output_path,
@@ -272,6 +273,12 @@ def download_youtube_and_submit():
                 'download_ranges': {'video': [{'start_time': 0, 'end_time': 420}]},  # 7 minutes
                 'merge_output_format': 'mp4',
             }
+
+            if os.path.exists(cookie_path):
+                cloud_logger.info("✅ Using cookiefile for authentication.")
+                ydl_opts['cookiefile'] = cookie_path
+            else:
+                cloud_logger.info("⚠️ No cookiefile found. Proceeding without cookies.")
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
